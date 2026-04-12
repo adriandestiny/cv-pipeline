@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pypdf
+pdfplumber
+reportlab
+requests
+python-multipart
+pydantic
+supabase
