@@ -7,8 +7,12 @@ import sys
 import json
 import requests
 
-# Add Orion skills path for PDF generation
-sys.path.insert(0, '/root/.hermes/skills')
+# PDF generation via cv_cover_letter_pdf skill (Hermes/skills path).
+# On a clean VPS where the skill is not installed, this gracefully returns
+# _PDF_SKILL_AVAILABLE = False. The pipeline.py uses pdf_utils.py (ReportLab)
+# for PDF generation instead, which is always available.
+HERMES_SKILLS_PATH = os.getenv("HERMES_SKILLS_PATH", "/root/.hermes/skills")
+sys.path.insert(0, HERMES_SKILLS_PATH)
 try:
     from cv_cover_letter_pdf import generate_cover_letter_pdf as _cl_pdf, generate_cv_pdf as _cv_pdf
     _PDF_SKILL_AVAILABLE = True
