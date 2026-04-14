@@ -213,7 +213,6 @@ def _save_application_and_documents(
     match_data: dict,
     tailored_cv: str,
     cover_letter: str,
-    ats_keywords: str = "",
 ) -> Optional[dict]:
     """Save job application + generated documents to Supabase.
 
@@ -246,7 +245,7 @@ def _save_application_and_documents(
             # Reconstruct cv_data from the stored CV record if needed
             cv_record = sb.table("cvs").select("parsed_data").eq("id", cv_id).single().execute()
             cv_data = cv_record.data["parsed_data"]
-            cv_pdf_bytes = cv_to_pdf(cv_data, ats_keywords=ats_keywords)
+            cv_pdf_bytes = cv_to_pdf(cv_data)
             cv_storage_path = f"{user_id}/tailored_cv_{timestamp}.pdf"
             cv_pdf_url = _upload_to_supabase_storage("generated-outputs", cv_storage_path, cv_pdf_bytes, "application/pdf")
         except Exception as e:
@@ -418,8 +417,6 @@ def process(req: ProcessRequest, verified_user: AuthenticatedUser = Depends(veri
         tailored_cv = generated.get("tailored_cv", "")
         cover_letter = generated.get("cover_letter", "")
 
-        ats_keywords = generated.get("ats_keywords", "")
-
         # 5. Stage 5: Clean
         cleaned = clean(tailored_cv, cover_letter)
         cleaned_cv = cleaned.get("cleaned_cv", tailored_cv)
@@ -434,7 +431,6 @@ def process(req: ProcessRequest, verified_user: AuthenticatedUser = Depends(veri
             match_data=match_data,
             tailored_cv=cleaned_cv,
             cover_letter=cleaned_cl,
-            ats_keywords=ats_keywords,
         )
 
         response = {

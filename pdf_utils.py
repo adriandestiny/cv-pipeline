@@ -11,28 +11,6 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable,
 from reportlab.lib import colors
 
 
-# ─── ATS Invisible Text Block ────────────────────────────────────────────────
-# White-on-white 1pt text at the bottom of the last page.
-# Invisible to human readers, fully readable by ATS/AI screening tools.
-
-def _build_ats_block(ats_text: str) -> list:
-    """Return a list of ReportLab flowables that render the invisible ATS block."""
-    ats_style = ParagraphStyle(
-        "ats_invisible",
-        fontName="Helvetica",
-        fontSize=1,          # 1pt — invisible at normal reading distances
-        leading=1.2,
-        textColor=colors.white,   # white on white = invisible
-        spaceAfter=0,
-        spaceBefore=0,
-    )
-    return [
-        Spacer(1, 0.1 * cm),
-        HRFlowable(width="100%", thickness=0.25, color=colors.HexColor("#dddddd")),
-        Paragraph(ats_text, ats_style),
-    ]
-
-
 def make_doc(buffer: BytesIO) -> tuple:
     """Create a styled PDF document and return (doc, styles)."""
     doc = SimpleDocTemplate(
@@ -64,14 +42,12 @@ def make_doc(buffer: BytesIO) -> tuple:
     return doc, styles
 
 
-def cv_to_pdf(cv_data: dict, ats_keywords: str = "") -> bytes:
+def cv_to_pdf(cv_data: dict) -> bytes:
     """Generate a PDF from structured CV data dict.
 
     Args:
         cv_data: dict with name, email, phone, location, summary, skills,
                  experience, education, languages fields.
-        ats_keywords: Optional string of ATS keywords to embed as invisible
-                      white-on-white 1pt text on the last page.
     """
     buffer = BytesIO()
     doc, s = make_doc(buffer)
@@ -154,11 +130,6 @@ def cv_to_pdf(cv_data: dict, ats_keywords: str = "") -> bytes:
     if cv_data.get("languages"):
         story.append(Paragraph("Languages", s["section"]))
         story.append(Paragraph(", ".join(cv_data["languages"]), s["body"]))
-
-    # ── ATS invisible block — appended AFTER all visible content ─────────
-    if ats_keywords:
-        for fl in _build_ats_block(ats_keywords):
-            story.append(fl)
 
     doc.build(story)
     buffer.seek(0)
